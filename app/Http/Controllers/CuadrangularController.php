@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cuadrangular;
+use App\Models\Equipo;
+use App\Models\Partido;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -44,14 +46,44 @@ class CuadrangularController extends Controller
      */
     public function store(Request $request)
     {
+        $cuadrangular = null;
+
         try {
-            DB::transaction(function () {
-                Cuadrangular::create();
+            DB::transaction(function () use (&$cuadrangular, $request) {
+                $cuadrangular = Cuadrangular::create();
+
+                // Registra los equipos en la base de datos
+                $equipos = json_decode($request["equipos"]);
+                $teams = array();
+                foreach ($equipos as $equipo) {
+                    $eq = DB::select('SELECT * FROM equipos WHERE nombre=?', [$equipo->nombre]);
+                    if (!$eq) {
+                        $eq = Equipo::create([
+                            "nombre" => $equipo->nombre
+                        ]);
+                    }
+                    $p = DB::select('SELECT * FROM equipos WHERE nombre=?', [$equipo->nombre]);
+                    array_push($teams, $p[0]->id);
+                }
+
+                //Crea los partidos
+                for ($i = 0; $i < count($teams) - 1; $i++) {
+                    for ($j = $i + 1; $j < count($teams); $j++) {
+                        Partido::create([
+                            "id_local" => $teams[$i],
+                            "id_visitante" => $teams[$j],
+                            "goles_local" => 0,
+                            "goles_visitante" => 0,
+                            "fecha" => '2022-08-07',
+                            "id_cuadrangular" => $cuadrangular->id
+                        ]);
+                    }
+                }
             });
         } catch (\Throwable $th) {
             return response()->json(['message' => $th->getMessage()], 400);
         }
-        return response()->json(['message' => 'success'], 200);
+        return response()->json(['message' => 'success', 'data' => $cuadrangular], 200);
     }
 
     /**
@@ -62,7 +94,15 @@ class CuadrangularController extends Controller
      */
     public function show($id)
     {
-        //
+        $partidos = null;
+        try {
+            DB::transaction(function () use ($id, &$partidos) {
+                $partidos = DB::select('SELECT *,p.id "id_partido" FROM partidos p,cuadrangulares c WHERE p.id_cuadrangular=c.id AND c.id=?', [$id]);
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success', 'data' => $partidos], 200);
     }
 
     /**

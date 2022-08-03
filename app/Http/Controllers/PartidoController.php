@@ -92,12 +92,13 @@ class PartidoController extends Controller
      */
     public function update(Request $request, $id)
     {
+
         try {
             DB::transaction(function () use ($request, $id) {
                 $partido = Partido::find($id);
                 $partido->update([
-                    "goles_local" => $request->goles_local,
-                    "goles_visitante" => $request->goles_visitante,
+                    "goles_local" => $request[0],
+                    "goles_visitante" => $request[1],
                 ]);
             });
         } catch (\Throwable $th) {
