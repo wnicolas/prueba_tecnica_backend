@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Partido;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PartidoController extends Controller
 {
@@ -34,7 +36,21 @@ class PartidoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            DB::transaction(function () use ($request) {
+                Partido::create([
+                    "id_local" => $request->id_local,
+                    "id_visitante" => $request->id_visitante,
+                    "goles_local" => $request->goles_local,
+                    "goles_visitante" => $request->goles_visitante,
+                    "fecha" => $request->fecha,
+                    "id_cuadrangular" => $request->id_cuadrangular
+                ]);
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success'], 200);
     }
 
     /**

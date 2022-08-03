@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Equipo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EquipoController extends Controller
 {
@@ -23,7 +25,6 @@ class EquipoController extends Controller
      */
     public function create()
     {
-        
     }
 
     /**
@@ -34,8 +35,16 @@ class EquipoController extends Controller
      */
     public function store(Request $request)
     {
-        return "Hola mundo";
-        //
+        try {
+            DB::transaction(function () use ($request) {
+                Equipo::create([
+                    "nombre" => $request->nombre
+                ]);
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success'], 200);
     }
 
     /**

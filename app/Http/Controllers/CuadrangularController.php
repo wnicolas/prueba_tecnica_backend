@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cuadrangular;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CuadrangularController extends Controller
 {
@@ -34,7 +36,14 @@ class CuadrangularController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            DB::transaction(function () {
+                Cuadrangular::create();
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success'], 200);
     }
 
     /**
