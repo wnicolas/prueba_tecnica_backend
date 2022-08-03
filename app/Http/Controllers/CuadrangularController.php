@@ -15,7 +15,15 @@ class CuadrangularController extends Controller
      */
     public function index()
     {
-        //
+        $cuadrangulares = null;
+        try {
+            DB::transaction(function () use (&$cuadrangulares) {
+                $cuadrangulares = Cuadrangular::all();
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success', 'data' => $cuadrangulares], 200);
     }
 
     /**

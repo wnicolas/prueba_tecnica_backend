@@ -15,7 +15,15 @@ class EquipoController extends Controller
      */
     public function index()
     {
-        return "Hola mundo";
+        $equipos = null;
+        try {
+            DB::transaction(function () use (&$equipos) {
+                $equipos = Equipo::all();
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success', 'data' => $equipos], 200);
     }
 
     /**

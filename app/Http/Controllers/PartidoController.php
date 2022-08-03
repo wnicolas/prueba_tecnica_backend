@@ -15,7 +15,15 @@ class PartidoController extends Controller
      */
     public function index()
     {
-        //
+        $partidos = null;
+        try {
+            DB::transaction(function () use (&$partidos) {
+                $partidos = Partido::all();
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success', 'data' => $partidos], 200);
     }
 
     /**
@@ -84,7 +92,18 @@ class PartidoController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            DB::transaction(function () use ($request, $id) {
+                $partido = Partido::find($id);
+                $partido->update([
+                    "goles_local" => $request->goles_local,
+                    "goles_visitante" => $request->goles_visitante,
+                ]);
+            });
+        } catch (\Throwable $th) {
+            return response()->json(['message' => $th->getMessage()], 400);
+        }
+        return response()->json(['message' => 'success'], 200);
     }
 
     /**
